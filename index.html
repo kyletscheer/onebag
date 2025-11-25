@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OneBag Setup Explorer - Kyle Scheer</title>
+    <meta name="description" content="Explore the contents of my 32L onebag travel setup for long-term travel." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f7fafc;
+      }
+      .container-grid {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .interactive-image {
+        max-width: 100%;
+        height: auto;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease-in-out;
+        cursor: default;
+        border-radius: 0.75rem;
+      }
+
+      .hotspot-highlight {
+        position: absolute;
+        pointer-events: auto;
+        background-color: rgba(67, 56, 202, 0.4);
+        border: 2px solid #4338ca;
+        border-radius: 6px;
+        opacity: 0.6;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        text-align: center;
+        overflow: hidden;
+        z-index: 10;
+      }
+
+      .hotspot-highlight.is-external {
+        background-color: rgba(16, 185, 129, 0.4);
+        border-color: #059669;
+      }
+
+      .hotspot-highlight.is-info {
+        background-color: rgba(107, 114, 128, 0.3);
+        border-color: #4b5563;
+        cursor: help;
+      }
+
+      .hotspot-highlight.search-match {
+        background-color: rgba(251, 191, 36, 0.5);
+        border-color: #f59e0b;
+        animation: pulse-search 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse-search {
+        0%,
+        100% {
+          opacity: 0.7;
+        }
+        50% {
+          opacity: 0.95;
+        }
+      }
+
+      .hotspot-highlight:hover {
+        opacity: 0.8;
+        transform: scale(1.01);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        z-index: 11;
+      }
+
+      .hotspot-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 2px 4px;
+        font-size: 0.65rem;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .footer {
+        background-color: #f3f4f6;
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+        align-items: center;
+      }
+      .footer a {
+        text-decoration: underline;
+      }
+      .footer a:hover {
+        color: #4f46e5;
+      }
+      .footer img {
+        display: inherit;
+      }
+
+      /* Intro/Tutorial Styles */
+      #intro-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.5s ease-in-out;
+      }
+
+      #intro-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .closed-bag-container {
+        text-align: center;
+        animation: fadeInUp 0.8s ease-out;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .closed-bag-image {
+        max-width: 500px;
+        width: 90%;
+        border-radius: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .closed-bag-image:hover {
+        transform: scale(1.05) rotate(2deg);
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
+      }
+
+      /* Search Styles */
+      #search-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+
+      #search-container.expanded {
+        right: 20px;
+        top: 20px;
+      }
+
+      #search-results {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .search-result-item:hover {
+        background-color: #eef2ff;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 1rem;
+  width: 70vw;        /* 70% of viewport width */
+  max-width: 75vw;    /* ensures large sizing */
+  max-height: 80vh;   /* makes the modal taller */
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      /* Smooth transitions */
+      .view-transition {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* Video Button */
+      #video-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+      }
+
+      @keyframes subtlePulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Intro/Tutorial Overlay -->
+    <div id="intro-overlay">
+      <div class="closed-bag-container">
+        <h1 class="text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
+          My 32L Onebag Travel Setup
+        </h1>
+        <p class="text-xl text-white mb-8 drop-shadow">
+        for 8 months in Europe and Asia
+        </p>
+        <p class="text-md text-white mb-8 drop-shadow">
+          Click the bag to explore what's inside
+        </p>
+        <img
+          src="closed-bag.jpeg"
+          alt="Closed travel bag"
+          class="closed-bag-image mx-auto"
+          onclick="openBag()"
+          onerror="this.src='https://placehold.co/1000x1000/4338ca/FFFFFF?text=Closed+Bag'"
+        />
+        <div
+          class="mt-6 flex items-center justify-center gap-2 text-white animate-bounce"
+        >
+          <i data-lucide="mouse-pointer-click" class="w-6 h-6"></i>
+          <span class="text-lg font-semibold">Click to open</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Container -->
+    <div id="search-container" class="hidden">
+      <div class="bg-white rounded-xl shadow-2xl p-4 w-80">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search items..."
+            class="flex-1 outline-none text-gray-700"
+            oninput="handleSearch(this.value)"
+          />
+          <button
+            onclick="clearSearch()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div id="search-results" class="space-y-1"></div>
+      </div>
+    </div>
+
+    <!-- Video Button -->
+    <button
+      id="video-button"
+      onclick="openVideoModal()"
+      class="hidden bg-indigo-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-indigo-700 transition flex items-center gap-2"
+    >
+      <i data-lucide="play-circle" class="w-5 h-5"></i>
+      <span class="font-medium">Watch Packing</span>
+    </button>
+
+    <!-- Video Modal -->
+    <div
+      id="video-modal"
+      class="modal-overlay"
+      onclick="closeVideoModal(event)"
+    >
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button
+          onclick="closeVideoModal()"
+          class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Packing Process</h2>
+
+        <div class="aspect-video">
+          <iframe
+            id="youtube-iframe"
+            width="100%"
+            height="100%"
+            src=""
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen
+            class="rounded-lg"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div
+      class="container-grid mx-auto p-4 md:p-8"
+      id="main-content"
+      style="display: none"
+    >
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-gray-800">
+          My OneBag Travel Setup
+        </h1>
+        <p class="text-lg text-gray-500 mt-2" id="current-view-title">
+          Loading...
+        </p>
+      </header>
+
+      <main class="flex flex-col lg:flex-row gap-8 flex-grow">
+        <div class="w-full lg:w-2/3 flex justify-center items-start">
+          <div
+            class="bg-white p-4 rounded-xl shadow-2xl w-full max-w-4xl view-transition"
+          >
+            <div class="relative inline-block w-full" id="image-wrapper">
+              <img
+                id="main-image"
+                src=""
+                alt="One Bag Travel Setup"
+                usemap="#setupMap"
+                class="interactive-image w-full h-auto object-contain rounded-lg"
+                onerror="handleImageError(this)"
+              />
+              <map name="setupMap" id="setupMap"></map>
+              <div
+                id="overlay-container"
+                class="absolute top-0 left-0 w-full h-full pointer-events-none"
+              ></div>
+            </div>
+            <div id="breadcrumb" class="mt-4 text-sm text-gray-500"></div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/3">
+          <div class="bg-white p-6 rounded-xl shadow-xl sticky top-8">
+            <h2
+              class="text-2xl font-semibold text-gray-700 mb-4"
+              id="detail-title"
+            >
+              View Details
+            </h2>
+            <p class="text-gray-600 mb-6" id="detail-description">
+              Click highlighted areas to explore. <br />
+              <span
+                class="inline-block w-3 h-3 bg-indigo-500 rounded-sm ml-1"
+              ></span>
+              Zoom
+              <span
+                class="inline-block w-3 h-3 bg-emerald-500 rounded-sm ml-1"
+              ></span>
+              Link
+              <span
+                class="inline-block w-3 h-3 bg-gray-500 rounded-sm ml-1"
+              ></span>
+              Info
+            </p>
+
+            <div
+              id="hotspot-list"
+              class="space-y-2 max-h-[60vh] overflow-y-auto pr-2"
+            >
+              <h3 class="text-lg font-medium text-gray-700 border-b pb-2 mb-3">
+                Items in this view:
+              </h3>
+            </div>
+
+            <button
+              id="back-button"
+              class="mt-6 w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150 ease-in-out hidden"
+              onclick="goBack()"
+            >
+              &larr; Back to Previous View
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="footer text-center">
+      <p>
+        Made by
+        <a href="https://kylescheer.com" target="_blank">Kyle Scheer</a>
+      </p>
+      <p>
+        <a href="https://www.github.com/kyletscheer/onebag" target="_blank"
+          >View Code on Github</a
+        >
+      </p>
+      <a
+        href="https://ko-fi.com/scheerapps"
+        target="_blank"
+        rel="noopener"
+        title="Support me on Ko-fi"
+      >
+        <br />
+        <img
+          height="36"
+          style="border: 0px; height: 36px"
+          src="https://storage.ko-fi.com/cdn/kofi5.png?v=6"
+          border="0"
+          alt="Buy Me a Coffee at ko-fi.com"
+        />
+      </a>
+    </footer>
+
+    <script>
+      const PLACEHOLDER_WIDTH = 2048;
+      const PLACEHOLDER_HEIGHT = 1536;
+      let currentSearchMatches = [];
+
+      const setupData = {
+        "all-2.jpeg": {
+          title: "Complete OneBag Overview",
+          description: "The complete setup. Click areas to zoom in.",
+          img: "all-2.jpeg",
+          originalWidth: 2048,
+          originalHeight: 1536,
+          areas: [
+            {
+              shape: "rect",
+              coords: "571,273,322,595",
+              alt: "Toiletries",
+              targetView: "toiletries.jpeg",
+              info: "The full toiletry kit.",
+            },
+            {
+              shape: "rect",
+              coords: "1322,973,861,80",
+              alt: "Bags",
+              targetView: "bags.jpeg",
+              info: "The main backpack and packable day bag.",
+            },
+            {
+              shape: "rect",
+              coords: "1644,903,1337,195",
+              alt: "Winter Weather",
+              targetView: "winter.jpeg",
+              info: "Cold weather accessories and layers.",
+            },
+            {
+              shape: "rect",
+              coords: "1655,613,1811,903",
+              alt: "Towel",
+              targetView: "towel.jpeg",
+              info: "Quick-dry microfibre towel.",
+            },
+            {
+              shape: "rect",
+              coords: "1968,1371,1331,908",
+              alt: "Clothes",
+              targetView: "all-clothes.jpeg",
+              info: "The full clothing capsule.",
+            },
+            {
+              shape: "rect",
+              coords: "72,612,407,1008",
+              alt: "Documents",
+              targetView: "documents.jpeg",
+              info: "Passport, visa, and essential paper documents.",
+            },
+            {
+              shape: "rect",
+              coords: "70,1002,1327,1362",
+              alt: "Writing and Electronics",
+              targetView: "electronics.jpeg",
+              info: "E-reader, laptop, cables, and notebooks.",
+            },
+            {
+              shape: "poly",
+              coords:
+                "600,220,589,598,443,692,430,943,824,976,828,679,712,677,736,216,600,221",
+              alt: "Everyday Carry",
+              targetView: "edc.jpeg",
+              info: "What is in my pockets.",
+            },
+          ],
+        },
+
+        "documents.jpeg": {
+          title: "Travel Documents",
+          description: "Essential paperwork and backups.",
+          img: "documents.jpeg",
+          originalWidth: 1520,
+          originalHeight: 1024,
+          areas: [
+            {
+              shape: "rect",
+              coords: "625,977,160,663",
+              alt: "Passports",
+              info: "New and old passport.",
+            },
+            {
+              shape: "rect",
+              coords: "689,628,959,983",
+              alt: "International Driving Permit",
+              info: "Required for renting scooters/cars abroad.",
+            },
+            {
+              shape: "rect",
+              coords: "985,695,1171,928",
+              alt: "Extra cash",
+              info: "Emergency cash stash.",
+            },
+            {
+              shape: "rect",
+              coords: "947,431,779,212",
+              alt: "Extra cards",
+              info: "Backup credit/debit cards.",
+            },
+            {
+              shape: "rect",
+              coords: "982,224,1224,407",
+              alt: "COVID vaccine card",
+              info: "Proof of vaccination.",
+            },
+            {
+              shape: "rect",
+              coords: "1224,567,1488,977",
+              alt: "Bag",
+              info: "Document organizer pouch.",
+            },
+            {
+              shape: "rect",
+              coords: "29,26,712,550",
+              alt: "Copy of important documents",
+              info: "Paper copies of identifying documents/medical record/insurance.",
+            },
+          ],
+        },
+
+        "bags.jpeg": {
+          title: "Bags",
+          description: "The carrying system.",
+          img: "bags.jpeg",
+          originalWidth: 1508,
+          originalHeight: 1281,
+          areas: [
+            {
+              shape: "rect",
+              coords: "813,695,1289,1267",
+              alt: "Day bag",
+              externalLink:
+                "https://www.decathlon.sg/p/folding-gym-shoe-bag-black-decathlon-8539975.html?srsltid=AfmBOoqq7DpNj3jCUIjC99L_9Fek4qCkx_rJ0v1xiu7N5lzImn4pYyBr",
+              info: "String bag for daily excursions.",
+            },
+            {
+              shape: "rect",
+              coords: "0,9,678,1223",
+              alt: "Rain cover",
+              externalLink:
+                "https://www.decathlon.com/products/quechua-20-40l-rain-cover-for-hiking-backpacks-337980?_pos=2&_sid=89bdd7a91&_ss=r",
+              info: "Waterproof cover for the main bag.",
+            },
+            {
+              shape: "rect",
+              coords: "695,26,1439,690",
+              alt: "Backpack",
+              externalLink:
+                "https://www.decathlon.com/products/hiking-backpack-32l-nh-escape-500-334334?variant=39732256407614&country=US&currency=USD&utm_medium=product_sync&utm_source=google&utm_content=sag_organic&utm_campaign=sag_organic&gad_source=1&gad_campaignid=17347351601",
+              info: "Quechua NH500 Escape 32 L Hiking Backpack",
+            },
+          ],
+        },
+
+        "wallet.jpeg": {
+          title: "Wallet Contents",
+          description: "Everyday carry finance items.",
+          img: "wallet.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "757,979,251,554",
+              alt: "Tais pouch",
+              info: "Handmade pouch from Timor-Leste.",
+            },
+            {
+              shape: "rect",
+              coords: "468,533,293,281",
+              alt: "Debit Card",
+              info: "Charles Schwab (No ATM fees).",
+            },
+            {
+              shape: "rect",
+              coords: "505,283,683,532",
+              alt: "Credit Card",
+              info: "Capital One Savor One (No foreign trans fees).",
+            },
+            {
+              shape: "rect",
+              coords: "308,23,459,260",
+              alt: "Driver's license",
+              info: "ID for domestic use/driving.",
+            },
+            {
+              shape: "rect",
+              coords: "495,29,683,241",
+              alt: "Cash",
+              info: "Daily spending cash.",
+            },
+          ],
+        },
+
+        "toiletries.jpeg": {
+          title: "Toiletry Contents",
+          description: "Hygiene and first aid.",
+          img: "toiletries.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "438,325,945,958",
+              alt: "Toiletry bags",
+              info: "Organization pouches.",
+            },
+            {
+              shape: "rect",
+              coords: "235,958,128,625",
+              alt: "Razor",
+              info: "Looking for a better one.",
+            },
+            {
+              shape: "rect",
+              coords: "262,685,407,948",
+              alt: "Deodorant",
+              info: "Annoyed by the design.",
+            },
+            {
+              shape: "rect",
+              coords: "25,33,86,413",
+              alt: "Toothbrush",
+              info: "Battery operated.",
+            },
+            {
+              shape: "rect",
+              coords: "138,44,231,405",
+              alt: "Toothpaste",
+              info: "Should have travel size.",
+            },
+            {
+              shape: "rect",
+              coords: "294,54,392,184",
+              alt: "Floss",
+              info: "Dental floss.",
+            },
+            {
+              shape: "rect",
+              coords: "291,208,331,337",
+              alt: "Vix Inhaler",
+              info: "For congestion.",
+            },
+            {
+              shape: "rect",
+              coords: "359,208,396,342",
+              alt: "Chapstick",
+              info: "Lip balm.",
+            },
+            {
+              shape: "rect",
+              coords: "459,52,570,310",
+              alt: "Shampoo",
+              info: "...and conditioner.",
+            },
+            {
+              shape: "rect",
+              coords: "646,65,721,302",
+              alt: "Bug spray",
+              info: "MosquitNO.",
+            },
+            {
+              shape: "rect",
+              coords: "11,642,105,960",
+              alt: "Missing Items",
+              info: "Soap, nail file, sunscreen.",
+            },
+            {
+              shape: "rect",
+              coords: "761,52,971,331",
+              alt: "Face mask",
+              info: "Cloth masks.",
+            },
+            {
+              shape: "rect",
+              coords: "18,449,79,581",
+              alt: "Earplugs",
+              info: "For noisy hostels, never used them.",
+            },
+            {
+              shape: "rect",
+              coords: "140,428,235,532",
+              alt: "Nail clippers",
+              info: "Standard clippers.",
+            },
+            {
+              shape: "rect",
+              coords: "256,371,402,623",
+              alt: "Various meds",
+              info: "Ibuprofen, Imodium, etc.",
+            },
+          ],
+        },
+
+        "edc.jpeg": {
+          title: "Everyday Carry (EDC)",
+          description: "Items carried daily.",
+          img: "edc.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "308,660,686,983",
+              alt: "Wallet",
+              targetView: "wallet.jpeg",
+              info: "Money and ID's.",
+            },
+            {
+              shape: "rect",
+              coords: "86,298,252,635",
+              alt: "Smartphone",
+              externalLink: "https://amzn.to/3K44FkF",
+              info: "Samsung A53 to iPhone 13.",
+            },
+            {
+              shape: "rect",
+              coords: "583,549,426,457",
+              alt: "Earbuds",
+              externalLink: "https://amzn.to/4rgr0vU",
+              info: "Anker Soundcore Liberty A20i.",
+            },
+            {
+              shape: "rect",
+              coords: "183,31,858,251",
+              alt: "Waterbottle",
+              info: "Reused plastic bottle.",
+            },
+            {
+              shape: "rect",
+              coords: "757,252,855,751",
+              alt: "Watch",
+              info: "Cheap digital watch.",
+            },
+            {
+              shape: "rect",
+              coords: "335,310,662,410",
+              alt: "Sunglasses",
+              info: "Cheap sunglasses.",
+            },
+          ],
+        },
+
+        "all-clothes.jpeg": {
+          title: "Clothing Capsule",
+          description: "All clothing items.",
+          img: "all-clothes.jpeg",
+          originalWidth: 489,
+          originalHeight: 223,
+          areas: [
+            {
+              shape: "rect",
+              coords: "94,13,160,70",
+              alt: "Casual Shorts 2",
+              targetView: "gray-shorts.jpeg",
+              info: "Extra pair of shorts.",
+            },
+            {
+              shape: "rect",
+              coords: "85,145,164,214",
+              alt: "Exercise Shorts 2",
+              targetView: "black-short-2.jpeg",
+              externalLink:
+                "https://www.decathlon.ca/en/p/8547823/men-s-gym-shorts-essential-120-black",
+              info: "Backup fitness shorts.",
+            },
+            {
+              shape: "rect",
+              coords: "315,53,391,97",
+              alt: "Exercise Shirt 2",
+              targetView: "exercise-1.jpeg",
+              info: "Second workout top.",
+            },
+            {
+              shape: "rect",
+              coords: "20,19,83,83",
+              alt: "Casual shorts",
+              targetView: "pajama-shorts.jpeg",
+              info: "Lounge/Sleep shorts.",
+            },
+            {
+              shape: "rect",
+              coords: "166,7,192,99",
+              alt: "Hiking socks",
+              info: "Some generic socks.",
+            },
+            {
+              shape: "rect",
+              coords: "198,26,222,119",
+              alt: "Ankle Socks",
+              externalLink:
+                "https://www.decathlon.com/products/kiprun-pack-of-2-pairs-of-run-500-thin-invisible-running-socks-348089",
+              info: "Decathlon Kiprun Run 500 Thin No-Show Socks.",
+            },
+            {
+              shape: "rect",
+              coords: "237,126,297,202",
+              alt: "Flip Flops",
+              info: "Shower/Beach shoes.",
+            },
+            {
+              shape: "rect",
+              coords: "398,114,487,211",
+              alt: "Packing cube",
+              info: "Compression cube.",
+            },
+            {
+              shape: "rect",
+              coords: "5,150,79,223",
+              alt: "Pants",
+              targetView: "pants.jpeg",
+              info: "Convertible pants.",
+            },
+            {
+              shape: "rect",
+              coords: "222,21,285,121",
+              alt: "Boxer briefs seamless",
+              externalLink:
+                "https://www.uniqlo.com/us/en/products/E448078-000/00?colorDisplayCode=07&sizeDisplayCode=005",
+              info: "Uniqlo AIRism seamless.",
+            },
+            {
+              shape: "rect",
+              coords: "288,78,318,116",
+              alt: "Thermal shirt",
+              targetView: "quidditch.jpeg",
+              info: "Warm base layer.",
+            },
+            {
+              shape: "rect",
+              coords: "168,124,232,204",
+              alt: "Running shoes",
+              info: "Nike Free 5.0.",
+            },
+            {
+              shape: "rect",
+              coords: "91,77,161,142",
+              alt: "Exercise Shorts",
+              targetView: "black-shorts-1.jpeg",
+              externalLink:
+                "https://www.decathlon.ca/en/p/8547823/men-s-gym-shorts-essential-120-black",
+              info: "Decathlon Fitness Shorts.",
+            },
+            {
+              shape: "rect",
+              coords: "7,87,82,146",
+              alt: "Hiking Shorts",
+              targetView: "nice-shorts.jpeg",
+              externalLink:
+                "https://www.decathlon.ca/en/p/8785231/mens-hiking-shorts-nh-100-grey",
+              info: "Quechua MH100.",
+            },
+            {
+              shape: "rect",
+              coords: "314,149,398,209",
+              alt: "Fancy blue shirt",
+              targetView: "blue-button.jpeg",
+              info: "Collared shirt.",
+            },
+            {
+              shape: "rect",
+              coords: "321,100,391,143",
+              alt: "Fancy white shirt",
+              targetView: "white-button.jpeg",
+              info: "Collared shirt.",
+            },
+            {
+              shape: "rect",
+              coords: "310,8,388,45",
+              alt: "Exercise shirt",
+              targetView: "exercise.jpeg",
+              externalLink:
+                "https://www.decathlon.co.id/en-ID/p/dry-men-s-running-breathable-t-shirt-blue-decathlon-8666011.html",
+              info: "Dry Men's Running Breathable T-shirt - Blue - Decathlon.",
+            },
+            {
+              shape: "rect",
+              coords: "392,11,457,49",
+              alt: "Favorite t-shirt",
+              targetView: "blue-pocket.jpeg",
+              info: "Cotton blend tee.",
+            },
+            {
+              shape: "rect",
+              coords: "393,56,478,98",
+              alt: "Reebok sweater",
+              targetView: "sweater.jpeg",
+              info: "Merino wool layer.",
+            },
+            {
+              shape: "rect",
+              coords: "314,78,277,15",
+              alt: "Boxer Briefs",
+              externalLink:
+                "https://www.uniqlo.com/us/en/products/E454326-000/00?colorDisplayCode=69&sizeDisplayCode=004",
+              info: "Uniqlo AIRism.",
+            },
+          ],
+        },
+
+        "winter.jpeg": {
+          title: "Winter Gear",
+          description: "Layers for cold climates.",
+          img: "winter.jpeg",
+          originalWidth: 1850,
+          originalHeight: 1270,
+          areas: [
+            {
+              shape: "rect",
+              coords: "6,13,805,1249",
+              alt: "Rain jacket",
+              info: "Waterproof shell.",
+            },
+            {
+              shape: "rect",
+              coords: "784,785,1104,1141",
+              alt: "Gloves",
+              info: "Lightweight gloves.",
+            },
+            {
+              shape: "rect",
+              coords: "1098,358,728,80",
+              alt: "Winter cap",
+              info: "Beanie.",
+            },
+            {
+              shape: "rect",
+              coords: "1848,1250,1050,41",
+              alt: "Puffer jacket",
+              info: "Down insulation.",
+            },
+          ],
+        },
+
+        "electronics.jpeg": {
+          title: "Electronics",
+          description: "Tech and cables.",
+          img: "electronics.jpeg",
+          originalWidth: 1730,
+          originalHeight: 1040,
+          areas: [
+            {
+              shape: "rect",
+              coords: "1352,506,1687,1009",
+              alt: "Electronics Sack",
+              info: "Cable organizer.",
+            },
+            {
+              shape: "rect",
+              coords: "672,39,1267,447",
+              alt: "Laptop case",
+              info: "Protective sleeve.",
+            },
+            {
+              shape: "rect",
+              coords: "288,417,58,110",
+              alt: "Kindle",
+              externalLink: "https://amzn.to/3Kd92dd",
+              info: "Paperwhite E-reader.",
+            },
+            {
+              shape: "rect",
+              coords: "353,53,620,461",
+              alt: "Screen protector",
+              externalLink: "https://amzn.to/4p0idNn",
+              info: "For Kindle.",
+            },
+            {
+              shape: "rect",
+              coords: "23,589,258,936",
+              alt: "Journal",
+              externalLink: "https://amzn.to/4ifSpdg",
+              info: "Rite in the Rain.",
+            },
+            {
+              shape: "rect",
+              coords: "324,531,629,977",
+              alt: "Notebook and Pens",
+              info: "For other thoughts.",
+            },
+            {
+              shape: "rect",
+              coords: "713,551,1262,941",
+              alt: "Macbook",
+              externalLink: "https://amzn.to/4ojnheq",
+              info: "Macbook Air M3.",
+            },
+            {
+              shape: "rect",
+              coords: "1572,220,1722,423",
+              alt: "Power Bank",
+              externalLink: "https://amzn.to/48yqbqY",
+              info: "Anker Zolo 20k.",
+            },
+            {
+              shape: "rect",
+              coords: "1270,52,1566,505",
+              alt: "Adapters",
+              info: "Universal plugs.",
+            },
+            {
+              shape: "rect",
+              coords: "1459,826,1586,924",
+              alt: "Headlamp",
+              info: "Always useful.",
+            },
+            {
+              shape: "rect",
+              coords: "1476,624,1552,714",
+              alt: "Sewing kit",
+              info: "For repairs.",
+            },
+            {
+              shape: "rect",
+              coords: "1117,83,1187,396",
+              alt: "USB Hub",
+              externalLink: "https://amzn.to/48l4b1L",
+              info: "Adam Elements.",
+            },
+            {
+              shape: "rect",
+              coords: "891,85,1071,204",
+              alt: "Hard Drive",
+              externalLink: "https://amzn.to/48lTImD",
+              info: "WD 2TB. For movies",
+            },
+            {
+              shape: "rect",
+              coords: "681,221,1101,413",
+              alt: "Charging cords",
+              info: "Various USB-C cables and boxes.",
+            },
+          ],
+        },
+
+        "towel.jpeg": {
+          title: "Towel",
+          description: "Quick dry towel.",
+          img: "towel.jpeg",
+          originalWidth: 1536,
+          originalHeight: 1024,
+          areas: [],
+        },
+        "pajama-shorts.jpeg": {
+          title: "Pajama Shorts",
+          description: "Comfy sleepwear.",
+          img: "pajama-shorts.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "pants.jpeg": {
+          title: "Pants",
+          description: "Travel pants.",
+          img: "pants.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "quidditch.jpeg": {
+          title: "Thermal Shirt",
+          description: "Base layer.",
+          img: "quidditch.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "blue-button.jpeg": {
+          title: "Fancy Blue Shirt",
+          description: "Button down.",
+          img: "blue-button.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "white-button.jpeg": {
+          title: "Fancy White Shirt",
+          description: "Button down.",
+          img: "white-button.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "blue-pocket.jpeg": {
+          title: "Favorite Shirt",
+          description: "I like the little pocket.",
+          img: "blue-pocket.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "sweater.jpeg": {
+          title: "Sweater",
+          description: "Reebok.",
+          img: "sweater.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "black-short-2.jpeg": {
+          title: "Black Shorts 2",
+          description: "Athletic shorts.",
+          img: "black-short-2.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "10,10,990,990",
+              alt: "Domyos Men's Breathable Fitness Shorts with Zippered Pockets",
+              externalLink:
+                "https://www.decathlon.ca/en/p/8547823/men-s-gym-shorts-essential-120-black",
+              info: "From Decathlon",
+            },
+          ],
+        },
+        "black-shorts-1.jpeg": {
+          title: "Black Shorts 1",
+          description: "Athletic shorts.",
+          img: "black-shorts-1.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "10,10,990,990",
+              alt: "Domyos Men's Breathable Fitness Shorts with Zippered Pockets",
+              externalLink:
+                "https://www.decathlon.ca/en/p/8547823/men-s-gym-shorts-essential-120-black",
+              info: "From Decathlon",
+            },
+          ],
+        },
+        "gray-shorts.jpeg": {
+          title: "Gray Shorts",
+          description: "Casual shorts.",
+          img: "gray-shorts.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+        "nice-shorts.jpeg": {
+          title: "Nice Shorts",
+          description: "Quechua Men's Hiking Shorts - MH 100 - Decathlon.",
+          img: "nice-shorts.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "10,10,990,990",
+              alt: "Quechua Men's Hiking Shorts - MH 100 - Decathlon.",
+              externalLink:
+                "https://www.decathlon.ca/en/p/8785231/mens-hiking-shorts-nh-100-grey",
+              info: "Nice zipper pockets.",
+            },
+          ],
+        },
+        "exercise.jpeg": {
+          title: "Exercise Shirt",
+          description: "1st Exercise Shirt",
+          img: "exercise.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [
+            {
+              shape: "rect",
+              coords: "10,10,990,990",
+              alt: "Dry Men's Running Breathable T-shirt - Blue",
+              externalLink:
+                "https://www.decathlon.co.id/en-ID/p/dry-men-s-running-breathable-t-shirt-blue-decathlon-8666011.html",
+              info: "From Decathlon",
+            },
+          ],
+        },
+        "exercise-1.jpeg": {
+          title: "Exercise Shirt 2",
+          description: "2nd exercise shirt.",
+          img: "exercise-1.jpeg",
+          originalWidth: 1000,
+          originalHeight: 1000,
+          areas: [],
+        },
+      };
+
+      const history = [];
+      const imageElement = document.getElementById("main-image");
+      const mapElement = document.getElementById("setupMap");
+      const overlayContainer = document.getElementById("overlay-container");
+      const titleElement = document.getElementById("current-view-title");
+      const detailTitleElement = document.getElementById("detail-title");
+      const detailDescriptionElement =
+        document.getElementById("detail-description");
+      const hotspotListElement = document.getElementById("hotspot-list");
+      const backButton = document.getElementById("back-button");
+      const breadcrumbElement = document.getElementById("breadcrumb");
+
+      // Initialize icons
+      lucide.createIcons();
+
+      // Open bag animation
+      function openBag() {
+        const introOverlay = document.getElementById("intro-overlay");
+        const mainContent = document.getElementById("main-content");
+        const searchContainer = document.getElementById("search-container");
+        const videoButton = document.getElementById("video-button");
+
+        introOverlay.classList.add("hidden");
+        setTimeout(() => {
+          introOverlay.style.display = "none";
+          mainContent.style.display = "block";
+          searchContainer.classList.remove("hidden");
+          videoButton.classList.remove("hidden");
+          loadView("all-2.jpeg");
+        }, 500);
+      }
+
+      // Search functionality
+      function handleSearch(query) {
+        const resultsContainer = document.getElementById("search-results");
+
+        if (!query.trim()) {
+          resultsContainer.innerHTML = "";
+          currentSearchMatches = [];
+          regenerateCurrentView();
+          return;
+        }
+
+        const results = searchItems(query.toLowerCase());
+        currentSearchMatches = results;
+
+        if (results.length === 0) {
+          resultsContainer.innerHTML =
+            '<p class="text-sm text-gray-500 italic">No items found</p>';
+          regenerateCurrentView();
+          return;
+        }
+
+        resultsContainer.innerHTML = results
+          .map(
+            (result) => `
+            <div class="search-result-item p-2 rounded cursor-pointer hover:bg-indigo-50 transition" onclick="navigateToResult('${
+              result.viewId
+            }', '${result.area.alt}')">
+              <div class="font-semibold text-sm text-gray-800">${highlightMatch(
+                result.area.alt,
+                query
+              )}</div>
+              <div class="text-xs text-gray-500">${result.viewTitle}</div>
+              ${
+                result.area.info
+                  ? `<div class="text-xs text-gray-400">${highlightMatch(
+                      result.area.info,
+                      query
+                    )}</div>`
+                  : ""
+              }
+            </div>
+          `
+          )
+          .join("");
+
+        // Regenerate current view to show highlights
+        regenerateCurrentView();
+      }
+
+      function searchItems(query) {
+        const results = [];
+
+        for (const [viewId, view] of Object.entries(setupData)) {
+          view.areas.forEach((area) => {
+            const altMatch = area.alt.toLowerCase().includes(query);
+            const infoMatch =
+              area.info && area.info.toLowerCase().includes(query);
+
+            if (altMatch || infoMatch) {
+              results.push({
+                viewId,
+                viewTitle: view.title,
+                area: area,
+              });
+            }
+          });
+        }
+
+        return results;
+      }
+
+      function highlightMatch(text, query) {
+        const regex = new RegExp(`(${query})`, "gi");
+        return text.replace(regex, '<span class="bg-yellow-200">$1</span>');
+      }
+
+      function navigateToResult(viewId, itemAlt) {
+        loadView(viewId);
+
+        // Scroll to the item in the list
+        setTimeout(() => {
+          const listItems = hotspotListElement.querySelectorAll(".flex");
+          listItems.forEach((item) => {
+            if (item.textContent.includes(itemAlt)) {
+              item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              item.classList.add("bg-yellow-100");
+              setTimeout(() => item.classList.remove("bg-yellow-100"), 2000);
+            }
+          });
+        }, 100);
+      }
+
+      function clearSearch() {
+        document.getElementById("search-input").value = "";
+        document.getElementById("search-results").innerHTML = "";
+        currentSearchMatches = [];
+        regenerateCurrentView();
+      }
+
+      function regenerateCurrentView() {
+        if (history.length > 0) {
+          const currentViewId = history[history.length - 1];
+          const currentView = setupData[currentViewId];
+          if (currentView) generateVisualOverlays(currentView);
+        }
+      }
+
+      // Video modal functions
+      function openVideoModal() {
+        const modal = document.getElementById("video-modal");
+        const iframe = document.getElementById("youtube-iframe");
+
+        // Use proper embed parameters
+        const videoId = "ptFP0_i7kiE";
+        const origin = window.location.origin;
+
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&origin=${origin}`;
+
+        modal.classList.add("active");
+        lucide.createIcons();
+      }
+
+      function closeVideoModal(event) {
+        if (event && event.target !== document.getElementById("video-modal"))
+          return;
+
+        const modal = document.getElementById("video-modal");
+        const iframe = document.getElementById("youtube-iframe");
+
+        iframe.src = ""; // stops playback
+        modal.classList.remove("active");
+      }
+
+      function getBoundingBox(shape, coords) {
+        if (!coords || coords.length === 0) return null;
+        if (shape === "rect" && coords.length === 4) {
+          const x1 = Math.min(coords[0], coords[2]);
+          const y1 = Math.min(coords[1], coords[3]);
+          const x2 = Math.max(coords[0], coords[2]);
+          const y2 = Math.max(coords[1], coords[3]);
+          return [x1, y1, x2, y2];
+        }
+        if (shape === "poly" && coords.length >= 6 && coords.length % 2 === 0) {
+          let minX = coords[0],
+            minY = coords[1];
+          let maxX = coords[0],
+            maxY = coords[1];
+          for (let i = 2; i < coords.length; i += 2) {
+            minX = Math.min(minX, coords[i]);
+            maxX = Math.max(maxX, coords[i]);
+            minY = Math.min(minY, coords[i + 1]);
+            maxY = Math.max(maxY, coords[i + 1]);
+          }
+          return [minX, minY, maxX, maxY];
+        }
+        return null;
+      }
+
+      function handleImageError(imgElement) {
+        const originalSrc = imgElement.src;
+        imgElement.onerror = null;
+        imgElement.src = `https://placehold.co/${PLACEHOLDER_WIDTH}x${PLACEHOLDER_HEIGHT}/991B1B/FFFFFF?text=MISSING+FILE`;
+        imgElement.alt = "Error: Image Missing";
+        const failedFilename = originalSrc.split("/").pop();
+        titleElement.textContent = `Error Loading Image`;
+        detailTitleElement.textContent = `Error: Image File Not Found`;
+        detailDescriptionElement.innerHTML = `File <code class="font-mono bg-red-100 p-1 rounded">${failedFilename}</code> missing.`;
+        overlayContainer.innerHTML = "";
+        hotspotListElement.innerHTML = `<p class="text-sm text-red-500 italic">No image loaded.</p>`;
+      }
+
+      function isSearchMatch(area) {
+        if (currentSearchMatches.length === 0) return false;
+        return currentSearchMatches.some(
+          (match) =>
+            match.area.alt === area.alt &&
+            match.viewId === history[history.length - 1]
+        );
+      }
+
+      function generateVisualOverlays(view) {
+        const imgElWidth = imageElement.clientWidth;
+        const imgElHeight = imageElement.clientHeight;
+        const originalWidth = view.originalWidth;
+        const originalHeight = view.originalHeight;
+
+        if (!originalWidth || !originalHeight) return;
+
+        const imgElRatio = imgElWidth / imgElHeight;
+        const originalRatio = originalWidth / originalHeight;
+        let displayedWidth, displayedHeight, offsetX, offsetY;
+
+        if (imgElRatio > originalRatio) {
+          displayedHeight = imgElHeight;
+          displayedWidth = imgElHeight * originalRatio;
+          offsetX = (imgElWidth - displayedWidth) / 2;
+          offsetY = 0;
+        } else {
+          displayedWidth = imgElWidth;
+          displayedHeight = imgElWidth / originalRatio;
+          offsetX = 0;
+          offsetY = (imgElHeight - displayedHeight) / 2;
+        }
+
+        const scaleX = displayedWidth / originalWidth;
+        const scaleY = displayedHeight / originalHeight;
+
+        mapElement.innerHTML = "";
+        overlayContainer.innerHTML = "";
+
+        if (view.areas.length > 0) {
+          view.areas.forEach((area) => {
+            const coords = area.coords
+              .split(",")
+              .map((c) => parseInt(c.trim()));
+
+            const areaElement = document.createElement("area");
+            areaElement.setAttribute("shape", area.shape || "rect");
+            areaElement.setAttribute("coords", area.coords);
+            areaElement.setAttribute("alt", area.alt);
+            areaElement.href = "#";
+            areaElement.onclick = (e) => {
+              e.preventDefault();
+              handleAreaClick(area);
+            };
+            mapElement.appendChild(areaElement);
+
+            const boundingBox = getBoundingBox(area.shape, coords);
+            if (boundingBox) {
+              const [x1, y1, x2, y2] = boundingBox;
+              const scaledX1 = x1 * scaleX + offsetX;
+              const scaledY1 = y1 * scaleY + offsetY;
+              const scaledWidth = (x2 - x1) * scaleX;
+              const scaledHeight = (y2 - y1) * scaleY;
+
+              const highlightDiv = document.createElement("div");
+
+              let classList = "hotspot-highlight";
+              if (isSearchMatch(area)) {
+                classList += " search-match";
+              } else if (area.externalLink && !area.targetView) {
+                classList += " is-external";
+              } else if (!area.targetView && !area.externalLink) {
+                classList += " is-info";
+              }
+
+              highlightDiv.className = classList;
+              highlightDiv.style.left = `${scaledX1}px`;
+              highlightDiv.style.top = `${scaledY1}px`;
+              highlightDiv.style.width = `${scaledWidth}px`;
+              highlightDiv.style.height = `${scaledHeight}px`;
+              highlightDiv.title = area.info || area.alt;
+
+              let iconHtml = "";
+              if (isSearchMatch(area)) {
+                iconHtml =
+                  '<i data-lucide="search" class="w-3 h-3 inline mr-1"></i>';
+              } else if (area.externalLink && !area.targetView) {
+                iconHtml =
+                  '<i data-lucide="external-link" class="w-3 h-3 inline mr-1"></i>';
+              } else if (!area.targetView) {
+                iconHtml =
+                  '<i data-lucide="info" class="w-3 h-3 inline mr-1"></i>';
+              } else {
+                iconHtml =
+                  '<i data-lucide="zoom-in" class="w-3 h-3 inline mr-1"></i>';
+              }
+
+              highlightDiv.innerHTML = `<span class="hotspot-label">${iconHtml}${area.alt}</span>`;
+              highlightDiv.onclick = (e) => {
+                e.preventDefault();
+                handleAreaClick(area);
+              };
+
+              overlayContainer.appendChild(highlightDiv);
+            }
+          });
+          lucide.createIcons();
+        }
+      }
+
+      function handleAreaClick(area) {
+        if (area.targetView) {
+          loadView(area.targetView);
+        } else if (area.externalLink) {
+          window.open(area.externalLink, "_blank");
+        } else {
+          detailTitleElement.textContent = area.alt;
+          detailDescriptionElement.textContent =
+            area.info || "No further details available.";
+        }
+      }
+
+      function loadView(viewId, isNewView = true) {
+        const view = setupData[viewId];
+        if (!view) {
+          console.error("View not found:", viewId);
+          return;
+        }
+
+        if (isNewView && history[history.length - 1] !== viewId) {
+          history.push(viewId);
+        }
+
+        overlayContainer.innerHTML = "";
+        hotspotListElement.innerHTML = "";
+
+        titleElement.textContent = `Current View: ${view.title}`;
+        detailTitleElement.textContent = view.title;
+        detailDescriptionElement.textContent = view.description;
+        backButton.classList.toggle("hidden", history.length <= 1);
+        updateBreadcrumb();
+
+        renderHotspotList(view);
+
+        imageElement.onload = null;
+        imageElement.onerror = (e) => handleImageError(e.target);
+
+        const handleOverlayGeneration = () => {
+          requestAnimationFrame(() => {
+            generateVisualOverlays(view);
+          });
+        };
+
+        imageElement.onload = handleOverlayGeneration;
+        imageElement.src = view.img;
+        imageElement.alt = view.title;
+
+        if (imageElement.complete) {
+          handleOverlayGeneration();
+        }
+      }
+
+      function renderHotspotList(view) {
+        hotspotListElement.innerHTML = `<h3 class="text-lg font-medium text-gray-700 border-b pb-2 mb-3">Items in this view:</h3>`;
+        if (view.areas.length > 0) {
+          view.areas.forEach((area) => {
+            const listItem = document.createElement("div");
+            const isMatch = isSearchMatch(area);
+            listItem.className = `flex items-center justify-between text-sm text-gray-700 p-2 ${
+              isMatch ? "bg-yellow-100" : "bg-gray-100"
+            } rounded-md hover:bg-gray-200 transition cursor-pointer mb-2`;
+
+            let icon = "zoom-in";
+            if (isMatch) icon = "search";
+            else if (area.externalLink && !area.targetView)
+              icon = "external-link";
+            else if (!area.targetView) icon = "info";
+
+            listItem.innerHTML = `
+              <div>
+                <span class="font-semibold block">${area.alt}</span>
+                <span class="text-xs text-gray-500">${area.info || ""}</span>
+              </div>
+              <i data-lucide="${icon}" class="w-4 h-4 text-gray-400"></i>
+            `;
+            listItem.onclick = () => handleAreaClick(area);
+            hotspotListElement.appendChild(listItem);
+          });
+          lucide.createIcons();
+        } else {
+          hotspotListElement.innerHTML = `<p class="text-sm text-gray-500 italic">No interactive items in this view.</p>`;
+        }
+      }
+
+      function goBack() {
+        if (history.length > 1) {
+          history.pop();
+          loadView(history[history.length - 1], false);
+        }
+      }
+
+      function updateBreadcrumb() {
+        breadcrumbElement.innerHTML = history
+          .map((viewId, index) => {
+            const view = setupData[viewId];
+            const viewTitle = view
+              ? view.title.split("(")[0].trim()
+              : viewId.replace(".jpeg", "");
+
+            if (index === history.length - 1) {
+              return `<span class="font-bold text-indigo-600">${viewTitle}</span>`;
+            } else {
+              return `<a href="#" onclick="loadView('${viewId}', false)" class="text-indigo-400 hover:text-indigo-600">${viewTitle}</a>`;
+            }
+          })
+          .join(' <span class="mx-1 font-medium text-gray-400">/</span> ');
+      }
+
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (history.length > 0) {
+            const currentViewId = history[history.length - 1];
+            const currentView = setupData[currentViewId];
+            if (currentView) generateVisualOverlays(currentView);
+          }
+        }, 100);
+      });
+
+      window.onload = () => {
+        lucide.createIcons();
+      };
+    </script>
+  </body>
+</html>
